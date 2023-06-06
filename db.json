@@ -1,0 +1,35 @@
+[
+    {
+      "className": "Class 1",
+      "classImage": "image1.jpg",
+      "instructorName": "John Doe",
+      "instructorEmail": "john.doe@example.com",
+      "availableSeats": 10,
+      "price": 50,
+      "status": "pending",
+      "totalEnrolledStudents": 0,
+      "feedback": ""
+    },
+    {
+      "className": "Class 2",
+      "classImage": "image2.jpg",
+      "instructorName": "Jane Smith",
+      "instructorEmail": "jane.smith@example.com",
+      "availableSeats": 5,
+      "price": 75,
+      "status": "approved",
+      "totalEnrolledStudents": 8,
+      "feedback": ""
+    },
+    {
+      "className": "Class 3",
+      "classImage": "image3.jpg",
+      "instructorName": "Mark Johnson",
+      "instructorEmail": "mark.johnson@example.com",
+      "availableSeats": 15,
+      "price": 40,
+      "status": "denied",
+      "totalEnrolledStudents": 0,
+      "feedback": "Insufficient class description provided."
+    }
+  ]

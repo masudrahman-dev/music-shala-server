@@ -37,7 +37,7 @@ async function run() {
     client.db("admin").command({ ping: 1 });
 
     const DBCollection = client.db("toyMarketplaceDB").collection("products");
-    
+
     app.post("/products", async (req, res) => {
       const products =  req.body;
       res.send(products);
@@ -110,6 +110,9 @@ async function run() {
         res.send(products);
       }
     });
+    app.get("/", async (req, res) => {
+     res.send(`<h1>Server is Running</h1>`)
+    });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
@@ -121,5 +124,5 @@ async function run() {
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(`Example app listening on phttp://localhost:${port}`);
+  console.log(`Example app listening on http://localhost:${port}`);
 });

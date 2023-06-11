@@ -50,10 +50,30 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
+    // get six items
+    app.get("/classes/six", async (req, res) => {
+      try {
+        const result = await classCollection.find().limit(6).toArray();
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error retrieving items:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    // all items
+    app.get("/classes", async (req, res) => {
+      try {
+        const result = await classCollection.find({}).toArray();
 
-    app.get("/add-class", async (req, res) => {
-      const result = await classCollection.find({}).toArray();
-      res.send(result);
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user:", error);
+        res.status(500).send("An error occurred");
+      }
     });
     // manage user api
 
@@ -103,22 +123,6 @@ async function run() {
       }
     });
 
-    // manage classes api
-
-    app.get("/classes", async (req, res) => {
-      try {
-        const result = await classCollection.find({}).toArray();
-
-        if (result) {
-          res.send(result);
-        } else {
-          res.status(404).send("User not found");
-        }
-      } catch (error) {
-        console.error("Error retrieving user:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
     //  update status
     app.patch("/classes/", async (req, res) => {
       const classId = req.query.classId;

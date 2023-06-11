@@ -38,12 +38,17 @@ async function run() {
     const usersCollection = client.db("summer-camp-db").collection("users");
 
     // instructors related api
-
+    // add class
     app.post("/add-class", async (req, res) => {
-      const item = req.body;
+      try {
+        const newItem = req.body;
+        const result = await classCollection.insertOne(newItem);
 
-      const result = await classCollection.insertOne(item);
-      res.send(result);
+        res.send(result);
+      } catch (error) {
+        console.error("Error adding class:", error);
+        res.status(500).send("An error occurred");
+      }
     });
 
     app.get("/add-class", async (req, res) => {
@@ -114,11 +119,10 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-    // patch
+    //  update status
     app.patch("/manage-classes/", async (req, res) => {
       const classId = req.query.classId;
       const updatedStatus = req.query.newStatus;
-      // console.log(classId === "6483f57f5bc0bb72407b3836", updatedStatus);
       try {
         const result = await classCollection.updateOne(
           { _id: new ObjectId(classId) },
@@ -129,6 +133,29 @@ async function run() {
 
         if (result.modifiedCount === 1) {
           res.send("Update successful");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    //  update description
+    app.patch("/manage-classes/feedback", async (req, res) => {
+      const classId = req.query.classId;
+      const updatedDesc = req.query.newDesc;
+
+      try {
+        const result = await classCollection.updateOne(
+          { _id: new ObjectId(classId) },
+          {
+            $set: { description: updatedDesc },
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send(" successful feedback update");
         } else {
           res.status(404).send("User not found");
         }

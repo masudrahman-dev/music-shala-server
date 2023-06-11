@@ -50,7 +50,7 @@ async function run() {
       const result = await classCollection.find({}).toArray();
       res.send(result);
     });
-    // user api
+    // manage user api
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -76,7 +76,7 @@ async function run() {
       // console.log(req.query.userId);
       const userId = req.query.userId;
       const updatedValue = req.query.newRole;
-      // const isRole = req.query.isRole;
+      const isRole = req.query.isRole;
       // const isInstructor = req.query.isInstructor;
       console.log(userId, updatedValue, isRole);
       try {
@@ -84,6 +84,46 @@ async function run() {
           { _id: new ObjectId(userId) },
           {
             $set: { role: updatedValue },
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send("Update successful");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    // manage classes api
+
+    app.get("/manage-classes", async (req, res) => {
+      try {
+        const result = await classCollection.find({}).toArray();
+
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    // patch
+    app.patch("/manage-classes/", async (req, res) => {
+      const classId = req.query.classId;
+      const updatedStatus = req.query.newStatus;
+      // console.log(classId === "6483f57f5bc0bb72407b3836", updatedStatus);
+      try {
+        const result = await classCollection.updateOne(
+          { _id: new ObjectId(classId) },
+          {
+            $set: { status: updatedStatus },
           }
         );
 

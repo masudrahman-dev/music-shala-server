@@ -54,13 +54,13 @@ async function run() {
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      // const query = { email: user.email }
-      // const existingUser = await usersCollection.findOne(query);
+      const query = { email: user.email };
+      const existingUser = await usersCollection.findOne(query);
 
-      // if (existingUser) {
-      //   return res.send({ message: 'user already exists' })
-      // }clo
-      console.log(user);
+      if (existingUser) {
+        return res.send({ message: "user already exists" });
+      }
+      // console.log(user);
 
       const result = await usersCollection.insertOne(user);
       res.send(result);
@@ -76,11 +76,15 @@ async function run() {
       // console.log(req.query.userId);
       const userId = req.query.userId;
       const updatedValue = req.query.newRole;
-      console.log(userId, updatedValue);
+      // const isRole = req.query.isRole;
+      // const isInstructor = req.query.isInstructor;
+      console.log(userId, updatedValue, isRole);
       try {
         const result = await usersCollection.updateOne(
           { _id: new ObjectId(userId) },
-          { $set: { role: updatedValue } }
+          {
+            $set: { role: updatedValue },
+          }
         );
 
         if (result.modifiedCount === 1) {

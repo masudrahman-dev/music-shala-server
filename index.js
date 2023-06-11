@@ -33,38 +33,74 @@ async function run() {
     client.connect();
     // Send a ping to confirm a successful connection
     client.db("admin").command({ ping: 1 });
-    const classCollection = client
-      .db("summer-camp-db")
-      .collection("classes");
+    const classCollection = client.db("summer-camp-db").collection("classes");
+    const cartsCollection = client.db("summer-camp-db").collection("carts");
+    const usersCollection = client.db("summer-camp-db").collection("users");
 
-// instructors related api 
+    // instructors related api
 
-app.post('/add-class', async (req, res) => {
-  const item = req.body;
-  console.log(item);
-  const result = await classCollection.insertOne(item);
-  res.send(result);
-})
+    app.post("/add-class", async (req, res) => {
+      const item = req.body;
 
+      const result = await classCollection.insertOne(item);
+      res.send(result);
+    });
 
+    app.get("/add-class", async (req, res) => {
+      const result = await classCollection.find({}).toArray();
+      res.send(result);
+    });
+    // user api
 
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      // const query = { email: user.email }
+      // const existingUser = await usersCollection.findOne(query);
 
+      // if (existingUser) {
+      //   return res.send({ message: 'user already exists' })
+      // }clo
+      console.log(user);
 
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+    app.get("/users", async (req, res) => {
+      // console.log(user);
 
+      const result = await usersCollection.find({}).toArray();
+      res.send(result);
+    });
+    // patch
+    app.patch("/users/", async (req, res) => {
+      // console.log(req.query.userId);
+      const userId = req.query.userId;
+      const updatedValue = req.query.newRole;
+      console.log(userId, updatedValue);
+      try {
+        const result = await usersCollection.updateOne(
+          { _id: new ObjectId(userId) },
+          { $set: { role: updatedValue } }
+        );
 
-
-
-
-
-
+        if (result.modifiedCount === 1) {
+          res.send("Update successful");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+  } finally {
+    // Ensures that the client will close when you finish/error
     app.get("/", async (req, res) => {
       res.send(`<h1>Server is Running</h1>`);
     });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
-  } finally {
-    // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }

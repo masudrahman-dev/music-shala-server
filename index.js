@@ -105,7 +105,7 @@ async function run() {
 
     // manage classes api
 
-    app.get("/manage-classes", async (req, res) => {
+    app.get("/classes", async (req, res) => {
       try {
         const result = await classCollection.find({}).toArray();
 
@@ -120,7 +120,7 @@ async function run() {
       }
     });
     //  update status
-    app.patch("/manage-classes/", async (req, res) => {
+    app.patch("/classes/", async (req, res) => {
       const classId = req.query.classId;
       const updatedStatus = req.query.newStatus;
       try {
@@ -142,7 +142,7 @@ async function run() {
       }
     });
     //  update description
-    app.patch("/manage-classes/feedback", async (req, res) => {
+    app.patch("/classes/feedback", async (req, res) => {
       const classId = req.query.classId;
       const updatedDesc = req.query.newDesc;
 
@@ -151,6 +151,51 @@ async function run() {
           { _id: new ObjectId(classId) },
           {
             $set: { description: updatedDesc },
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send(" successful feedback update");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    //  delete class
+    app.delete("/classes/:classId", async (req, res) => {
+      const classId = req.params.classId;
+
+      try {
+        // Find and delete the class document
+        const result = await classCollection.deleteOne({
+          _id: new ObjectId(classId),
+        });
+
+        if (result.deletedCount === 1) {
+          res.send("Class deleted successfully");
+        } else {
+          res.status(404).send("Class not found");
+        }
+      } catch (error) {
+        console.error("Error deleting class:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    //  update class info
+    app.patch("/classes/update/:id", async (req, res) => {
+      const classId = req.params.id;
+      const updatedClassInfo = req.body;
+      // console.log(req.params);
+
+      try {
+        const result = await classCollection.updateOne(
+          { _id: new ObjectId(classId) },
+          {
+            $set: updatedClassInfo,
           }
         );
 

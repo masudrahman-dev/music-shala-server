@@ -37,6 +37,32 @@ async function run() {
     const cartsCollection = client.db("summer-camp-db").collection("carts");
     const usersCollection = client.db("summer-camp-db").collection("users");
 
+    // carts collection
+
+    // add class to cart
+    app.get("/carts", async (req, res) => {
+      try {
+        const items = await cartsCollection.find().toArray();
+        res.status(200).json(items);
+      } catch (error) {
+        console.error("Error retrieving carts:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    // add class to cart
+    app.post("/carts", async (req, res) => {
+      try {
+        const newItem = req.body;
+        const result = await cartsCollection.insertOne(newItem);
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error adding class:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
     // instructors related api
     // add class
     app.post("/add-class", async (req, res) => {
@@ -75,8 +101,17 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-    // manage user api
-
+    // get user data
+    app.get("/users", async (req, res) => {
+      try {
+        const result = await usersCollection.find({}).toArray();
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Error retrieving users:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    // create user
     app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -90,20 +125,11 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
-    app.get("/users", async (req, res) => {
-      // console.log(user);
 
-      const result = await usersCollection.find({}).toArray();
-      res.send(result);
-    });
     // patch
     app.patch("/users/", async (req, res) => {
-      // console.log(req.query.userId);
       const userId = req.query.userId;
       const updatedValue = req.query.newRole;
-      const isRole = req.query.isRole;
-      // const isInstructor = req.query.isInstructor;
-      console.log(userId, updatedValue, isRole);
       try {
         const result = await usersCollection.updateOne(
           { _id: new ObjectId(userId) },
@@ -111,7 +137,6 @@ async function run() {
             $set: { role: updatedValue },
           }
         );
-
         if (result.modifiedCount === 1) {
           res.send("Update successful");
         } else {

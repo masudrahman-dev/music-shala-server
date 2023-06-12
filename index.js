@@ -37,6 +37,29 @@ async function run() {
     const cartsCollection = client.db("summer-camp-db").collection("carts");
     const usersCollection = client.db("summer-camp-db").collection("users");
 
+    // jwt
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+
+      res.send({ token });
+    });
+
+    // Warning: use verifyJWT before using verifyAdmin
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== "admin") {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden message" });
+      }
+      next();
+    };
+
     // carts collection
 
     // get class data to cart
@@ -65,16 +88,14 @@ async function run() {
     // delete class to cart
     app.delete("/carts/:id", async (req, res) => {
       try {
-        const classId = req.params.id; 
+        const classId = req.params.id;
         // console.log(req.params.id);
         const result = await cartsCollection.deleteOne({
           _id: new ObjectId(classId),
         });
-    
+        // console.log(result);
         if (result.deletedCount > 0) {
-          res
-            .status(200)
-            .json({ success: true, message: "Item deleted successfully" });
+          res.status(200).send(result);
         } else {
           res.status(404).json({ success: false, message: "Item not found" });
         }
@@ -83,7 +104,7 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-    
+
     // instructors related api
     // add class
     app.post("/add-class", async (req, res) => {
@@ -132,6 +153,27 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
+    // find one
+    app.get("/users/:email", async (req, res) => {
+      try {
+        const email = req.params.email;
+        // Find the document based on the email
+        const result = await usersCollection.findOne({ email });
+
+        if (!result) {
+          console.log("No document found for the given email");
+          res.status(404).send("No document found");
+          return;
+        }
+
+        // Document found, send it as the response
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Error retrieving user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
     // create user
     app.post("/users", async (req, res) => {
       const user = req.body;

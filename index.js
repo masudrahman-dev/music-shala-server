@@ -65,7 +65,7 @@ async function run() {
     // get class data to cart
     app.get("/carts", async (req, res) => {
       try {
-        const items = await cartsCollection.find().toArray();
+        const items = await cartsCollection.find({}).toArray();
         res.status(200).json(items);
       } catch (error) {
         console.error("Error retrieving carts:", error);

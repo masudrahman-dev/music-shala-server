@@ -39,7 +39,7 @@ async function run() {
 
     // carts collection
 
-    // add class to cart
+    // get class data to cart
     app.get("/carts", async (req, res) => {
       try {
         const items = await cartsCollection.find().toArray();
@@ -62,7 +62,28 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-
+    // delete class to cart
+    app.delete("/carts/:id", async (req, res) => {
+      try {
+        const classId = req.params.id; 
+        // console.log(req.params.id);
+        const result = await cartsCollection.deleteOne({
+          _id: new ObjectId(classId),
+        });
+    
+        if (result.deletedCount > 0) {
+          res
+            .status(200)
+            .json({ success: true, message: "Item deleted successfully" });
+        } else {
+          res.status(404).json({ success: false, message: "Item not found" });
+        }
+      } catch (error) {
+        console.error("Error deleting item from cart:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    
     // instructors related api
     // add class
     app.post("/add-class", async (req, res) => {

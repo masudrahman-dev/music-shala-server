@@ -1,19 +1,17 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
-
 const bodyParser = require("body-parser");
 const app = express();
 const port = 5000 || process.env.PORT;
-app.use(cors());
-
+// require('crypto').randomBytes(64).toString('hex')
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
-
 // parse application/json
 app.use(bodyParser.json());
+app.use(cors());
 
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ocgiioi.mongodb.net/?retryWrites=true&w=majority`;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pjny6cg.mongodb.net/?retryWrites=true&w=majority`;
@@ -27,6 +25,27 @@ const client = new MongoClient(uri, {
   },
 });
 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized access" });
+  }
+  // bearer token
+  const token = authorization.split(" ")[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -37,7 +56,42 @@ async function run() {
     const cartsCollection = client.db("summer-camp-db").collection("carts");
     const usersCollection = client.db("summer-camp-db").collection("users");
 
-    // // carts collection
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+
+      res.send({ token });
+    });
+
+    // Warning: use verifyJWT before using verifyAdmin
+    // const verifyAdmin = async (req, res, next) => {
+    //   const email = req.decoded.email;
+    //   const query = { email: email };
+    //   const user = await usersCollection.findOne(query);
+    //   if (user?.role !== "admin") {
+    //     return res
+    //       .status(403)
+    //       .send({ error: true, message: "forbidden message" });
+    //   }
+    //   next();
+    // };
+    // app.get("/admin-stats", verifyJWT, verifyAdmin, async (req, res) => {
+    //   const users = await usersCollection.estimatedDocumentCount();
+    //   const products = await menuCollection.estimatedDocumentCount();
+    //   const orders = await paymentCollection.estimatedDocumentCount();
+
+    //   const payments = await paymentCollection.find().toArray();
+    //   const revenue = payments.reduce((sum, payment) => sum + payment.price, 0);
+
+    //   res.send({
+    //     revenue,
+    //     users,
+    //     products,
+    //     orders,
+    //   });
+    // });
 
     // classes collection related api
     // get six items
@@ -70,7 +124,7 @@ async function run() {
     app.get("/classes/logged-user", async (req, res) => {
       try {
         const query = req.query.searchQuery;
-        console.log(query);
+        // console.log(query);
         const result = await classCollection
           .find({ user_email: query })
           .toArray();
@@ -85,7 +139,7 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-    
+
     //  update class status
     app.patch("/classes/class-status", async (req, res) => {
       const classId = req.query.classId;
@@ -321,6 +375,38 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
+
+    // find one data verify admin or instructor or user
+    app.get("/users/one-role/:email", async (req, res) => {
+      try {
+        const email = req.params.email;
+        // Find the document based on the email
+        const result = await usersCollection.findOne({ email });
+        if (!result) {
+          console.log("No document found for the given email");
+          res.status(404).send("No document found");
+          return;
+        }
+        // Document found, send it as the response
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Error retrieving user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     app.get("/", async (req, res) => {

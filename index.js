@@ -38,31 +38,178 @@ async function run() {
     const usersCollection = client.db("summer-camp-db").collection("users");
 
     // jwt
-    app.post("/jwt", (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
-      });
+    // app.post("/jwt", (req, res) => {
+    //   const user = req.body;
+    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    //     expiresIn: "1h",
+    //   });
 
-      res.send({ token });
-    });
+    //   res.send({ token });
+    // });
 
     // Warning: use verifyJWT before using verifyAdmin
-    const verifyAdmin = async (req, res, next) => {
-      const email = req.decoded.email;
-      const query = { email: email };
-      const user = await usersCollection.findOne(query);
-      if (user?.role !== "admin") {
-        return res
-          .status(403)
-          .send({ error: true, message: "forbidden message" });
-      }
-      next();
-    };
+    // const verifyAdmin = async (req, res, next) => {
+    //   const email = req.decoded.email;
+    //   const query = { email: email };
+    //   const user = await usersCollection.findOne(query);
+    //   if (user?.role !== "admin") {
+    //     return res
+    //       .status(403)
+    //       .send({ error: true, message: "forbidden message" });
+    //   }
+    //   next();
+    // };
 
     // carts collection
 
-    // get class data to cart
+    // classes collection related api
+    // get six items
+    app.get("/classes/six-item", async (req, res) => {
+      try {
+        const result = await classCollection.find().limit(6).toArray();
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error retrieving items:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    // all classes items
+    app.get("/classes", async (req, res) => {
+      try {
+        const result = await classCollection.find({}).toArray();
+
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    //  update class status
+    app.patch("/classes/class-status", async (req, res) => {
+      const classId = req.query.classId;
+      const updatedStatus = req.query.newStatus;
+      try {
+        const result = await classCollection.updateOne(
+          { _id: new ObjectId(classId) },
+          {
+            $set: { status: updatedStatus },
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send("Update successful");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    // -------------------------------------------
+    //    // update user role to classes DB
+    app.patch("/classes/user-role", async (req, res) => {
+      const email = req.query.email;
+      const updatedRole = req.query.newRole;
+      // console.log(email, updatedRole);
+
+      try {
+        const result = await classCollection.updateMany(
+          { user_email: email },
+          {
+            $set: { role: updatedRole },
+          }
+        );
+        console.log(result);
+        if (result.modifiedCount > 0) {
+          res.send("Update successful");
+        } else {
+          res.status(404).send("No matching users found");
+        }
+      } catch (error) {
+        console.error("Error updating users:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    // ###################################################
+    //  update class info
+    app.patch("/classes/update/:id", async (req, res) => {
+      const classId = req.params.id;
+      const updatedClassInfo = req.body;
+      // console.log(req.params);
+
+      try {
+        const result = await classCollection.updateOne(
+          { _id: new ObjectId(classId) },
+          {
+            $set: updatedClassInfo,
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send(" successful feedback update");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    //  delete class
+    app.delete("/classes/my-class/:classId", async (req, res) => {
+      const classId = req.params.classId;
+
+      try {
+        // Find and delete the class document
+        const result = await classCollection.deleteOne({
+          _id: new ObjectId(classId),
+        });
+
+        if (result.deletedCount === 1) {
+          res.send("Class deleted successfully");
+        } else {
+          res.status(404).send("Class not found");
+        }
+      } catch (error) {
+        console.error("Error deleting class:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    //  update description
+    app.patch("/classes/feedback", async (req, res) => {
+      const classId = req.query.classId;
+      const updatedDesc = req.query.newDesc;
+
+      try {
+        const result = await classCollection.updateOne(
+          { _id: new ObjectId(classId) },
+          {
+            $set: { description: updatedDesc },
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          res.send(" successful feedback update");
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+
+    // get carts data
     app.get("/carts", async (req, res) => {
       try {
         const items = await cartsCollection.find({}).toArray();
@@ -118,31 +265,7 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-    // get six items
-    app.get("/classes/six", async (req, res) => {
-      try {
-        const result = await classCollection.find().limit(6).toArray();
-        res.status(200).send(result);
-      } catch (error) {
-        console.error("Error retrieving items:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
-    // all items
-    app.get("/classes", async (req, res) => {
-      try {
-        const result = await classCollection.find({}).toArray();
 
-        if (result) {
-          res.send(result);
-        } else {
-          res.status(404).send("User not found");
-        }
-      } catch (error) {
-        console.error("Error retrieving user:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
     // get user data
     app.get("/users", async (req, res) => {
       try {
@@ -189,8 +312,8 @@ async function run() {
       res.send(result);
     });
 
-    // patch
-    app.patch("/users/", async (req, res) => {
+    // update user role to user DB
+    app.patch("/users/update-role", async (req, res) => {
       const userId = req.query.userId;
       const updatedValue = req.query.newRole;
       try {
@@ -200,99 +323,9 @@ async function run() {
             $set: { role: updatedValue },
           }
         );
-        if (result.modifiedCount === 1) {
-          res.send("Update successful");
-        } else {
-          res.status(404).send("User not found");
-        }
-      } catch (error) {
-        console.error("Error updating user:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
-
-    //  update status
-    app.patch("/classes/", async (req, res) => {
-      const classId = req.query.classId;
-      const updatedStatus = req.query.newStatus;
-      try {
-        const result = await classCollection.updateOne(
-          { _id: new ObjectId(classId) },
-          {
-            $set: { status: updatedStatus },
-          }
-        );
 
         if (result.modifiedCount === 1) {
           res.send("Update successful");
-        } else {
-          res.status(404).send("User not found");
-        }
-      } catch (error) {
-        console.error("Error updating user:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
-    //  update description
-    app.patch("/classes/feedback", async (req, res) => {
-      const classId = req.query.classId;
-      const updatedDesc = req.query.newDesc;
-
-      try {
-        const result = await classCollection.updateOne(
-          { _id: new ObjectId(classId) },
-          {
-            $set: { description: updatedDesc },
-          }
-        );
-
-        if (result.modifiedCount === 1) {
-          res.send(" successful feedback update");
-        } else {
-          res.status(404).send("User not found");
-        }
-      } catch (error) {
-        console.error("Error updating user:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
-    //  delete class
-    app.delete("/classes/:classId", async (req, res) => {
-      const classId = req.params.classId;
-
-      try {
-        // Find and delete the class document
-        const result = await classCollection.deleteOne({
-          _id: new ObjectId(classId),
-        });
-
-        if (result.deletedCount === 1) {
-          res.send("Class deleted successfully");
-        } else {
-          res.status(404).send("Class not found");
-        }
-      } catch (error) {
-        console.error("Error deleting class:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
-
-    //  update class info
-    app.patch("/classes/update/:id", async (req, res) => {
-      const classId = req.params.id;
-      const updatedClassInfo = req.body;
-      // console.log(req.params);
-
-      try {
-        const result = await classCollection.updateOne(
-          { _id: new ObjectId(classId) },
-          {
-            $set: updatedClassInfo,
-          }
-        );
-
-        if (result.modifiedCount === 1) {
-          res.send(" successful feedback update");
         } else {
           res.status(404).send("User not found");
         }

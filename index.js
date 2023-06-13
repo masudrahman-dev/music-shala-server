@@ -37,30 +37,7 @@ async function run() {
     const cartsCollection = client.db("summer-camp-db").collection("carts");
     const usersCollection = client.db("summer-camp-db").collection("users");
 
-    // jwt
-    // app.post("/jwt", (req, res) => {
-    //   const user = req.body;
-    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    //     expiresIn: "1h",
-    //   });
-
-    //   res.send({ token });
-    // });
-
-    // Warning: use verifyJWT before using verifyAdmin
-    // const verifyAdmin = async (req, res, next) => {
-    //   const email = req.decoded.email;
-    //   const query = { email: email };
-    //   const user = await usersCollection.findOne(query);
-    //   if (user?.role !== "admin") {
-    //     return res
-    //       .status(403)
-    //       .send({ error: true, message: "forbidden message" });
-    //   }
-    //   next();
-    // };
-
-    // carts collection
+    // // carts collection
 
     // classes collection related api
     // get six items
@@ -89,7 +66,26 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
+    // get logged user  classes items
+    app.get("/classes/logged-user", async (req, res) => {
+      try {
+        const query = req.query.searchQuery;
+        console.log(query);
+        const result = await classCollection
+          .find({ user_email: query })
+          .toArray();
 
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user:", error);
+        res.status(500).send("An error occurred");
+      }
+    });
+    
     //  update class status
     app.patch("/classes/class-status", async (req, res) => {
       const classId = req.query.classId;
@@ -112,9 +108,9 @@ async function run() {
         res.status(500).send("An error occurred");
       }
     });
-    // -------------------------------------------
-    //    // update user role to classes DB
-    app.patch("/classes/user-role", async (req, res) => {
+
+    // update user role to classes DB
+    app.patch("/classes/update-user-role", async (req, res) => {
       const email = req.query.email;
       const updatedRole = req.query.newRole;
       // console.log(email, updatedRole);
@@ -138,15 +134,14 @@ async function run() {
       }
     });
 
-
-
-    // test
-    // ###################################################
-    //  update class info
-    app.patch("/classes/update/:id", async (req, res) => {
+    // // test
+    // // ###################################################
+    // //  update class info
+    app.patch("/classes/update-info/:id", async (req, res) => {
       const classId = req.params.id;
       const updatedClassInfo = req.body;
-      // console.log(req.params);
+      console.log(req.params);
+      console.log(updatedClassInfo);
 
       try {
         const result = await classCollection.updateOne(
@@ -212,13 +207,22 @@ async function run() {
       }
     });
 
-    // get carts data
-    app.get("/carts", async (req, res) => {
+    // get  carts/logged-user
+    app.get("/carts/logged-user", async (req, res) => {
       try {
-        const items = await cartsCollection.find({}).toArray();
-        res.status(200).json(items);
+        const query = req.query.searchQuery;
+        // console.log(query);
+        const result = await cartsCollection
+          .find({ user_email: query })
+          .toArray();
+
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send("User not found");
+        }
       } catch (error) {
-        console.error("Error retrieving carts:", error);
+        console.error("Error retrieving user:", error);
         res.status(500).send("An error occurred");
       }
     });
@@ -255,7 +259,7 @@ async function run() {
       }
     });
 
-    // instructors related api
+    // // instructors related api
     // add class
     app.post("/add-class", async (req, res) => {
       try {
@@ -269,33 +273,13 @@ async function run() {
       }
     });
 
-    // get user data
+    // get all users data
     app.get("/users", async (req, res) => {
       try {
         const result = await usersCollection.find({}).toArray();
         res.status(200).json(result);
       } catch (error) {
         console.error("Error retrieving users:", error);
-        res.status(500).send("An error occurred");
-      }
-    });
-    // find one
-    app.get("/users/:email", async (req, res) => {
-      try {
-        const email = req.params.email;
-        // Find the document based on the email
-        const result = await usersCollection.findOne({ email });
-
-        if (!result) {
-          console.log("No document found for the given email");
-          res.status(404).send("No document found");
-          return;
-        }
-
-        // Document found, send it as the response
-        res.status(200).json(result);
-      } catch (error) {
-        console.error("Error retrieving user:", error);
         res.status(500).send("An error occurred");
       }
     });

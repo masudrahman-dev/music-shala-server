@@ -1,5 +1,9 @@
 const express = require("express");
 const { usersCollection } = require("../../models/database");
+const {
+  getAllUsers,
+  createUser,
+} = require("../../controllers/usersControllers/usersControllers");
 const app = express();
 const usersRouter = express.Router();
 
@@ -19,41 +23,7 @@ const usersRouter = express.Router();
 //   });
 
 // get all users
-usersRouter.get("/users", async (req, res) => {
-  try {
-    const result = await usersCollection.find({}).toArray();
-    res.status(200).send(result);
-  } catch (error) {
-    console.error("Error retrieving items:", error);
-    res.status(500).send("An error occurred");
-  }
-});
-// create users
-usersRouter.post("/users", async (req, res) => {
-  try {
-    const user = req.body;
-    user;
-    const query = {
-      email: user.email,
-    };
-    // Check if user already exists
-    const existingUser = await usersCollection.findOne(query);
-
-    if (existingUser) {
-      // User already exists, handle accordingly
-      "User already exists:", existingUser;
-      res.status(400).send("User already exists");
-      return;
-    }
-
-    // User does not exist, insert user data
-    const result = await usersCollection.insertOne(user);
-    res.status(200).send(result);
-  } catch (error) {
-    console.error("Error inserting user:", error);
-    res.status(500).send("An error occurred");
-  }
-});
+usersRouter.route("/").get(getAllUsers).post(createUser);
 
 // update users role
 usersRouter.patch("/users/user-role", async (req, res) => {

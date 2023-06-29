@@ -35,15 +35,26 @@ const deleteSingleClass = async (req, res) => {
     res.status(500).send("An error occurred");
   }
 };
-
-const deniedFeedback = async (req, res) => {
+// feedback update status
+const feedback_Status = async (req, res) => {
   try {
+    let result;
     const classId = req.params.id;
-    const newDesc = req.body.description;
+    const updatedStatus = req.body.newStatus;
+    const updatedFeedback = req.body.description;
+    const updatedDocs = req.body;
+    console.log(updatedDocs);
     const query = { _id: new ObjectId(classId) };
-    const result = await classesCollection.updateOne(query, {
-      $set: { description: newDesc },
-    });
+    // console.log(updatedFeedback, updatedStatus);
+    if (updatedStatus) {
+      result = await classesCollection.updateOne(query, {
+        $set: { status: updatedStatus },
+      });
+    } else if (updatedFeedback) {
+      result = await classesCollection.updateOne(query, {
+        $set: { description: updatedFeedback },
+      });
+    } 
     res.status(200).send(result);
   } catch (error) {
     console.error("Error updating class status:", error);
@@ -54,5 +65,5 @@ module.exports = {
   getAllClasses,
   createNewClass,
   deleteSingleClass,
-  deniedFeedback,
+  feedback_Status,
 };

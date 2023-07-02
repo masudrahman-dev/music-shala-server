@@ -3,8 +3,22 @@ const { classesCollection } = require("../../models/database");
 
 const getAllClasses = async (req, res) => {
   try {
-    const result = await classesCollection.find({}).toArray();
-    res.status(200).send(result);
+    let result;
+    const { email, status } = req.query; // Destructure email and status from req.query
+    // console.log(req.query);
+
+    if (email) {
+      const emailQuery = { instructor_email: email };
+      result = await classesCollection.find(emailQuery).toArray();
+    } else if (status) {
+      // Use status instead of newStatus
+      const statusQuery = { status: status };
+      result = await classesCollection.find(statusQuery).toArray();
+    } else {
+      result = await classesCollection.find({}).toArray();
+    }
+
+    res.status(200).json(result); // Send response as JSON
   } catch (error) {
     console.error("Error retrieving items:", error);
     res.status(500).send("An error occurred");
@@ -43,7 +57,7 @@ const feedback_Status = async (req, res) => {
     const updatedStatus = req.body.newStatus;
     const updatedFeedback = req.body.description;
     const updatedDocs = req.body;
-    console.log(updatedDocs);
+    // console.log(updatedDocs);
     const query = { _id: new ObjectId(classId) };
     // console.log(updatedFeedback, updatedStatus);
     if (updatedStatus) {
@@ -54,7 +68,7 @@ const feedback_Status = async (req, res) => {
       result = await classesCollection.updateOne(query, {
         $set: { description: updatedFeedback },
       });
-    } 
+    }
     res.status(200).send(result);
   } catch (error) {
     console.error("Error updating class status:", error);

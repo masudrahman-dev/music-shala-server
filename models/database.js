@@ -1,3 +1,5 @@
+
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // const uri = `mongodb+srv://masudrahmandev:${process.env.DB_PASS}@cluster0.uxgns2h.mongodb.net/?retryWrites=true&w=majority`;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.abghlrw.mongodb.net/?retryWrites=true&w=majority`;
@@ -25,10 +27,9 @@ async function run() {
     cartsCollection = client.db("music-shala-db").collection("carts");
     usersCollection = client.db("music-shala-db").collection("users");
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+   
   }
 }
 run().catch(console.dir);
 
-module.exports = { classesCollection,cartsCollection,usersCollection };
+module.exports = { classesCollection, cartsCollection, usersCollection };

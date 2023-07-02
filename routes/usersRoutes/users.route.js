@@ -3,7 +3,10 @@ const { usersCollection } = require("../../models/database");
 const {
   getAllUsers,
   createUser,
+  updateUserRole,
+  getSingleUser,
 } = require("../../controllers/usersControllers/usersControllers");
+const { ObjectId } = require("mongodb");
 const app = express();
 const usersRouter = express.Router();
 
@@ -24,19 +27,11 @@ const usersRouter = express.Router();
 
 // get all users
 usersRouter.route("/").get(getAllUsers).post(createUser);
-
-// update users role
-usersRouter.patch("/users/user-role", async (req, res) => {
+usersRouter.route("/:id").patch(updateUserRole)
+usersRouter.get("/user", async (req, res) => {
   try {
-    const { email, newRole } = req.query;
-    //  (email, newRole);
-
-    const result = await usersCollection.updateMany(
-      { email },
-      { $set: { role: newRole } }
-    );
-
-    res.status(200).send(result);
+    const result = await usersCollection.findOne(req.query);
+    res.status(200).json(result);
   } catch (error) {
     console.error("Error updating user roles:", error);
     res.status(500).send("An error occurred");

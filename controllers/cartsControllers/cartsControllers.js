@@ -38,7 +38,9 @@ const getAllCarts = async (req, res) => {
     }
     const query = { customer_email: email };
     const result = await cartsCollection.find(query).toArray();
-    res.status(200).send(result);
+    const totalAddToCarts = await cartsCollection.countDocuments(query);
+    // console.log(totalAddToCarts);
+    res.status(200).send({result,totalAddToCarts});
   } catch (error) {
     console.error("Error inserting class:", error);
     res.status(500).send("An error occurred");
@@ -48,7 +50,7 @@ const getAllCarts = async (req, res) => {
 const deleteCart = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(id);
+    // console.log(id);
     const query = { _id: new ObjectId(id) };
     const result = await cartsCollection.deleteOne(query);
     res.status(200).send(result);

@@ -1,3 +1,5 @@
+const jwt = require("jsonwebtoken");
+
 const createToken = (req, res) => {
     // const secret = require("crypto").randomBytes(64).toString("hex");
     const user = req.body;

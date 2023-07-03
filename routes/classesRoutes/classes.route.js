@@ -14,13 +14,13 @@ classesRouter.route("/").get(getAllClasses).post(createNewClass);
 
 classesRouter.route("/:id").delete(deleteSingleClass).patch(feedback_Status).put( async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = req.params.id;  const [currentTab, setCurrentTab] = useState("all");
     const updatedDocs = req.body;
     const query = { _id: new ObjectId(id) };
     const result = await classesCollection.updateOne(query, {
       $set: updatedDocs,
     });
-    //  (result);
+ 
     res.status(200).send(result);
   } catch (error) {
     console.error("Error updating class status:", error);
